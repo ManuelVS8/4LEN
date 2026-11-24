@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="es" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="google" content="notranslate">
+    <title>Diptongos e hiatos</title>
+    <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/refs/heads/main/icono.ico">
+    <style>
+        * { box-sizing: border-box; margin:0; padding:0; }
+        :root{
+            --blue:#001DFF;
+            --blue-dark:#04032B;
+            --blue-700:#1a3a5f;
+            --blue-600:#254fba;
+            --orange:#f59e42;
+            --orange-700:#e67e22;
+            --bg-grad-1:#1a3a5f;
+            --bg-grad-2:#0d2340;
+            --white:#ffffff;
+            --green:#2ecc71;
+            --red:#e74c3c;
+            --panel:#E8EAFF;
+            --purple:#5b4fc4;
+            --dip:#2e7d5b;
+            --hia:#b5532a;
+            --open:#e4572e;
+            --closed:#2a6fdb;
+        }
+        html{ -webkit-text-size-adjust:100%; }
+        body{
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
+            min-height:100vh; display:flex; justify-content:center; align-items:flex-start;
+            color:#333; padding: 40px 10px 20px 10px;
+        }
+        .game-container{
+            -webkit-user-select:none; user-select:none; -webkit-tap-highlight-color:transparent;
+            background:var(--white); border-radius:16px; box-shadow:0 12px 24px rgba(0,0,0,.12);
+            padding:1.5rem; max-width:980px; width:100%; min-height:640px; position:relative; overflow:hidden;
+            display:flex; flex-direction:column;
+        }
+        header { text-align:center; margin-bottom:.8rem; margin-top:0.5rem; }
+        h1 { color:var(--blue-dark); font-size:clamp(1.8rem,5vw,2.8rem); font-weight:900; letter-spacing:.5px; margin-bottom:.5rem; }
+        .subtitle { color:var(--blue-700); font-size:clamp(1rem,3vw,1.3rem); margin-top:.25rem; font-weight:600; line-height:1.4; }
+        .highlight-keyword { color:var(--orange); font-weight:800; }
+
+        .btn { color:#fff; border:none; border-radius:12px; cursor:pointer; font-weight:800; font-family:inherit;
+            transition:transform .1s ease, box-shadow .2s ease, background-color .25s ease;
+            display:inline-flex; align-items:center; justify-content:center; font-size:1.1rem; gap:10px; }
+        .btn:hover { transform:translateY(-3px); box-shadow:0 6px 14px rgba(0,0,0,.15); }
+        .btn:active { transform:translateY(0); }
+        .btn-start { background:var(--orange); margin:1rem auto; padding:.75rem 2rem; height:55px; font-size:1.3rem; min-width:200px; }
+
+        .screen { display:none; animation:fadeIn .4s ease; flex-direction:column; flex:1; width:100%; }
+        .screen.active { display:flex; }
+        @keyframes fadeIn { from{opacity:0; transform:translateY(15px);} to{opacity:1; transform:translateY(0);} }
+
+        .game-info { display:flex; gap:1rem; align-items:center; justify-content:space-between; margin:.6rem 0 1rem; width:100%; }
+        .timer { font-weight:900; color:var(--blue-700); font-size:1.2rem; min-width:100px; text-align:right; font-variant-numeric:tabular-nums; }
+        .progress-bar { flex:1; height:14px; background:#e6f2ff; border-radius:999px; overflow:hidden; border:1px solid #d3e2ff; }
+        .progress-fill { height:100%; width:0%; background:var(--orange); transition:width .4s ease; }
+        .level-indicator { font-weight:900; color:var(--orange); font-size:1.2rem; min-width:100px; text-align:left; white-space:nowrap; }
+
+        .round-btn { position:absolute; top:1rem; background:linear-gradient(135deg, var(--orange) 0%, var(--orange-700) 100%); color:#fff; border:2px solid #fff; width:42px; height:42px; border-radius:50%; cursor:pointer; font-size:1.2rem; display:flex; align-items:center; justify-content:center; z-index:100; padding:0; }
+        .round-btn:hover { background:linear-gradient(135deg, var(--orange-700) 0%, #c0650e 100%); transform:scale(1.08); }
+        .round-btn svg { width:22px; height:22px; fill:#fff; }
+        .mute-btn { right:1rem; }
+        .home-btn { left:1rem; display:none; }
+        .home-btn.show { display:flex; }
+
+        /* ===== Inicio ===== */
+        .start-content { display:flex; flex-direction:column; align-items:center; flex:1; padding:.5rem 1rem 1rem; text-align:center; }
+        .advice-box { background:var(--panel); border-left:5px solid var(--blue-700); padding:1.2rem 1.5rem; border-radius:12px;
+            color:var(--blue-700); max-width:800px; width:100%; font-size:1.15rem; line-height:1.6; margin-bottom:1.2rem; text-align:left; }
+        .advice-box p + p { margin-top:.3rem; }
+        .vowel-table { display:flex; justify-content:center; gap:.8rem; margin-top:.9rem; flex-wrap:wrap; }
+        .vowel-group { background:#fff; border-radius:10px; padding:.5rem .9rem; text-align:center; box-shadow:0 2px 6px rgba(0,0,0,.08); }
+        .vowel-group .vg-title { font-size:.85rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px; }
+        .vowel-group .vg-letters { font-size:1.6rem; font-weight:900; letter-spacing:6px; }
+        .vg-open .vg-title, .vg-open .vg-letters { color:var(--open); }
+        .vg-closed .vg-title, .vg-closed .vg-letters { color:var(--closed); }
+        .advice-anim-text { display:block; text-align:center; font-weight:900; margin-top:.8rem; font-size:1.4rem; }
+
+                .start-image-container { width:100%; display:flex; justify-content:center; margin-top:1rem; }
+        .start-image { max-width:300px; width:70%; height:auto; }
+
+        /* ===== Juego ===== */
+        .play-layout { display:grid; grid-template-columns: minmax(0,1.15fr) minmax(0,1fr); gap:1.2rem; align-items:start; flex:1; }
+        .play-main { display:flex; flex-direction:column; align-items:center; gap:.9rem; min-width:0; }
+        .play-side { min-width:0; }
+
+        .word-card { width:100%; background:#f7f8ff; border:2px solid #e1e5ff; border-radius:14px; padding:1rem .5rem .8rem; display:flex; flex-direction:column; align-items:center; gap:.5rem; }
+        .word-card.hidden { display:none; }
+        .repaso-tag { display:none; background:var(--purple); color:#fff; font-weight:800; font-size:.85rem; border-radius:999px; padding:.15rem .8rem; }
+        .repaso-tag.show { display:inline-block; }
+        .word { display:flex; justify-content:center; align-items:stretch; flex-wrap:nowrap; max-width:100%; }
+        .tile { font-family:inherit; font-size:clamp(1.6rem, 7vw, 2.7rem); font-weight:900; color:var(--blue-dark);
+            background:#fff; border:2px solid #cfd7ff; border-radius:10px; min-width:1.12em; padding:.12em .08em; margin:0 2px;
+            line-height:1.15; text-align:center; cursor:default; transition:background .2s, border-color .2s, transform .15s, color .2s; user-select:none; }
+        .word.pickable .tile { cursor:pointer; }
+        .word.pickable .tile:hover { transform:translateY(-3px); border-color:var(--orange); }
+        .tile.sel { background:#ffe9cf; border-color:var(--orange); transform:translateY(-4px); }
+        .tile.pair { background:#fff3e0; border-color:var(--orange); border-width:3px; }
+        .tile.vo { color:var(--open); }
+        .tile.vc { color:var(--closed); }
+        .tile.stress { box-shadow:0 0 0 4px rgba(245,158,66,.55); }
+        .tile.bad { background:#fde2df; border-color:var(--red); }
+        .tile.pop { animation:pop .45s ease; }
+        @keyframes pop { 0%{transform:scale(1);} 40%{transform:scale(1.35);} 100%{transform:scale(1);} }
+
+        
+        .legend { display:none; gap:1rem; font-size:.85rem; font-weight:800; }
+        .legend.show { display:flex; }
+        .legend .lo { color:var(--open); } .legend .lc { color:var(--closed); }
+
+        .question { font-size:clamp(1.1rem, 3.6vw, 1.35rem); font-weight:800; color:var(--blue-dark); text-align:center; line-height:1.35; }
+        .question .qv { color:var(--orange-700); }
+        .answers { display:flex; flex-wrap:wrap; gap:.6rem; justify-content:center; width:100%; }
+        .ans-btn { background:var(--orange); flex:1 1 140px; max-width:260px; padding:.7rem .8rem; min-height:52px; font-size:1.05rem; line-height:1.2; flex-direction:column; gap:2px; }
+        .ans-btn small { font-weight:600; font-size:.85rem; opacity:.95; }
+        .ans-btn.dip { background:var(--dip); }
+        .ans-btn.hia { background:var(--hia); }
+        .ans-btn.blue { background:var(--blue-600); }
+        .ans-btn:disabled { opacity:.55; cursor:default; transform:none; box-shadow:none; }
+
+        .feedback { width:100%; border-radius:12px; padding:.7rem 1rem; font-weight:700; font-size:1.02rem; line-height:1.4; display:none; }
+        .feedback.show { display:block; }
+        .feedback.ok { background:#e3f8ec; color:#1d6b42; border-left:5px solid var(--green); }
+        .feedback.err { background:#fde8e6; color:#9b2c20; border-left:5px solid var(--red); }
+        .feedback .rhyme { display:block; font-style:italic; font-weight:800; margin-top:.25rem; }
+
+        .summary { width:100%; display:none; flex-direction:column; align-items:center; gap:.6rem; }
+        .summary.show { display:flex; }
+        .syl-row { display:flex; flex-wrap:wrap; justify-content:center; gap:.35rem; }
+        .syl { font-size:clamp(1.4rem, 6vw, 2.2rem); font-weight:900; color:var(--blue-dark); background:#fff; border:2px solid #cfd7ff; border-radius:10px; padding:.1em .35em; }
+        .syl.join { border-color:var(--dip); background:#e3f8ec; }
+        .syl.split { border-color:var(--hia); background:#fdebe3; }
+        .syl b.pv { color:var(--orange-700); }
+        .verdict { font-size:1.25rem; font-weight:900; border-radius:999px; padding:.3rem 1.2rem; color:#fff; }
+        .verdict.dip { background:var(--dip); } .verdict.hia { background:var(--hia); }
+        .summary .why { font-weight:700; color:var(--blue-700); text-align:center; font-size:1rem; line-height:1.4; }
+        .btn-next { background:var(--orange); padding:.7rem 2rem; height:52px; font-size:1.2rem; }
+        
+        .shake-anim { animation:shake .4s ease-in-out; }
+        @keyframes shake { 0%{transform:translateX(0);} 20%{transform:translateX(-10px);} 40%{transform:translateX(10px);} 60%{transform:translateX(-10px);} 80%{transform:translateX(10px);} 100%{transform:translateX(0);} }
+
+        /* ===== Diagrama ===== */
+        .diagram-box { background:#fbfbff; border:2px solid #e1e5ff; border-radius:14px; padding:.6rem .5rem .7rem; }
+        .diagram-title { text-align:center; font-weight:900; color:var(--blue-700); font-size:1rem; margin-bottom:.3rem; }
+        .diagram { width:100%; height:auto; display:block; }
+        .diagram .nd rect { fill:#fff; stroke:#9aa0b4; stroke-width:1.6; transition:fill .3s, stroke .3s, stroke-width .3s; }
+        .diagram .nd.q rect { stroke:var(--purple); stroke-width:2; }
+        .diagram .nd.rd rect { stroke:var(--dip); stroke-width:2.2; }
+        .diagram .nd.rh rect { stroke:var(--hia); stroke-width:2.2; }
+        .diagram .nd text { font-family:'Segoe UI', Tahoma, sans-serif; fill:#222; text-anchor:middle; dominant-baseline:central; }
+        .diagram .t1 { font-size:13px; font-weight:800; }
+        .diagram .t2 { font-size:11px; font-weight:600; fill:#555 !important; }
+        .diagram .tr { font-size:15px; font-weight:900; }
+        .diagram .rd .tr { fill:var(--dip) !important; } .diagram .rh .tr { fill:var(--hia) !important; }
+        .diagram .eg path { fill:none; stroke:#8a8fa3; stroke-width:1.8; marker-end:var(--mk-gray); transition:stroke .3s; }
+        .diagram .eg path.on { stroke:var(--orange); stroke-width:3.2; marker-end:var(--mk-orange); }
+        .diagram .lbl { font-size:12px; font-weight:800; fill:#555; font-family:'Segoe UI', Tahoma, sans-serif; }
+        .diagram .nd.on rect { fill:#fff3e0; stroke:var(--orange); stroke-width:3; }
+        .diagram .nd.cur rect { stroke:var(--orange); stroke-width:3; animation:pulse 1s ease-in-out infinite; }
+        @keyframes pulse { 0%,100%{ fill:#fff; } 50%{ fill:#ffe2bf; } }
+        .diagram .nd.win.rd rect { fill:#c9f2da; stroke:var(--dip); stroke-width:4; }
+        .diagram .nd.win.rh rect { fill:#fbd6c6; stroke:var(--hia); stroke-width:4; }
+        .diagram-rhyme { text-align:center; font-style:italic; font-weight:800; color:var(--blue-700); font-size:.92rem; margin-top:.35rem; line-height:1.35; }
+
+        /* ===== Final ===== */
+        .results{ display:flex; flex-direction:column; align-items:center; gap:.8rem; text-align:center; flex:1; justify-content:center; padding:1rem; }
+        .final-title{ color:var(--blue-dark); font-weight:900; }
+        .big-score{ font-size:clamp(3rem,8vw,4.5rem); color:var(--blue-600); font-weight:900; margin:.5rem 0; }
+        .score-title{ font-size:1.5rem; color:var(--blue-700); font-weight:700; }
+        .final-time{ font-size:1.3rem; color:var(--blue-700); font-weight:600; margin-bottom:.5rem; font-variant-numeric:tabular-nums; }
+        #trophyBox { display:none; font-size:5.5rem; animation:bounce 1s ease infinite; margin-bottom:.5rem; color:var(--orange); }
+        @keyframes bounce { 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-20px); } }
+        .credit{ font-weight:700; color:#555; margin-top:1rem; }
+        #finalMsg { font-size:clamp(1.2rem,4.2vw,1.8rem); font-weight:800; color:var(--blue-700); margin-bottom:.5rem; }
+        .school-logo { width:180px; margin-top:1rem; }
+        .review-box { width:100%; max-width:640px; background:var(--panel); border-radius:12px; padding:1rem; text-align:left; margin-bottom:.5rem; }
+        .review-box h3 { color:var(--blue-dark); font-size:1.15rem; margin-bottom:.5rem; text-align:center; }
+        .review-list { list-style:none; display:grid; grid-template-columns:repeat(auto-fill, minmax(190px,1fr)); gap:.5rem; }
+        .review-list li { background:#fff; border-radius:10px; padding:.45rem .7rem; display:flex; justify-content:space-between; align-items:center; gap:.5rem; font-weight:800; color:var(--blue-dark); }
+        .review-list .chip { font-size:.75rem; color:#fff; border-radius:999px; padding:.1rem .55rem; white-space:nowrap; }
+        .chip.dip { background:var(--dip); } .chip.hia { background:var(--hia); }
+        .review-ok { text-align:center; font-weight:800; color:var(--dip); }
+
+        .confetti{ position:fixed; width:12px; height:12px; border-radius:50%; animation:confetti-fall 3s linear forwards; z-index:999; pointer-events:none; }
+        @keyframes confetti-fall{ 0%{ transform:translate(0,-20px) rotate(0); opacity:1;} 100%{ transform:translate(var(--tx), var(--ty)) rotate(360deg); opacity:0; } }
+
+        /* ===== Modales ===== */
+        .modal-overlay { position:fixed; inset:0; background:rgba(4,3,43,.6); display:none; align-items:center; justify-content:center; z-index:1000; padding:12px; }
+        .modal-overlay.show { display:flex; }
+        .modal-card { background:#fff; border-radius:16px; padding:1.3rem; max-width:560px; width:100%; max-height:92vh; overflow:auto; box-shadow:0 12px 30px rgba(0,0,0,.3); animation:fadeIn .25s ease; }
+        .modal-card h2 { color:var(--blue-dark); font-size:1.4rem; text-align:center; margin-bottom:.6rem; }
+        .modal-card p { color:var(--blue-700); font-weight:600; text-align:center; line-height:1.45; }
+        .modal-actions { display:flex; gap:.7rem; justify-content:center; margin-top:1rem; flex-wrap:wrap; }
+        .modal-actions .btn { padding:.6rem 1.4rem; height:48px; }
+        .btn-orange { background:var(--orange); } .btn-blue { background:var(--blue-600); } .btn-grey { background:#8a8fa3; }
+        
+        /* ===== Responsive ===== */
+        @media (max-width: 760px) {
+            .play-layout { grid-template-columns:1fr; }
+        }
+        @media (max-width: 600px) {
+            body { padding:56px 6px 12px; }
+            .game-container { padding:1rem .8rem; min-height:auto; }
+            .game-info { gap:.6rem; }
+            .level-indicator, .timer { min-width:0; font-size:1rem; }
+            .advice-box { padding:1rem; font-size:1.05rem; }
+            .vowel-table { flex-wrap:nowrap; gap:.5rem; }
+            .vowel-group { padding:.4rem .5rem; flex:1; }
+            .vowel-group .vg-title { font-size:.7rem; letter-spacing:0; }
+            .vowel-group .vg-letters { font-size:1.4rem; letter-spacing:4px; }
+            .round-btn { top:-46px; }
+            .game-container { overflow:visible; }
+        }
+    
+.btn-start{margin-top:1.2rem}
+.big-q{font-size:clamp(1.25rem,4vw,1.5rem)}
+</style>
+</head>
+<body>
+<div class="game-container">
+    <button class="round-btn home-btn" id="homeBtn" title="Volver al menú" aria-label="Volver al menú">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+    </button>
+    <button class="round-btn mute-btn" id="muteBtn" title="Silenciar/Activar sonido" aria-label="Silenciar/Activar sonido">
+        <svg id="soundIconOn" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+        <svg id="soundIconOff" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="display:none;"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/><line x1="1" y1="1" x2="23" y2="23" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>
+    </button>
+
+    <section class="screen active" id="startScreen">
+        <header>
+            <h1>Diptongos e hiatos</h1>
+            <div class="subtitle">Dos vocales juntas: ¿se <span class="highlight-keyword">unen</span> o se <span class="highlight-keyword">separan</span>?</div>
+        </header>
+        <div class="start-content">
+            <div class="advice-box">
+                <p><span class="highlight-keyword">Diptongo:</span> las dos vocales van juntas en la misma sílaba.</p>
+                <p><span class="highlight-keyword">Hiato:</span> las dos vocales van en sílabas distintas.</p>
+                <div class="vowel-table">
+                    <div class="vowel-group vg-open"><div class="vg-title">Vocales abiertas</div><div class="vg-letters">A E O</div></div>
+                    <div class="vowel-group vg-closed"><div class="vg-title">Vocales cerradas</div><div class="vg-letters">I U</div></div>
+                </div>
+                <div class="advice-anim-text">¡Buena suerte!</div>
+            </div>
+            <div class="start-image-container">
+                <img class="start-image" src="https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/refs/heads/main/Ni%C3%B1os.png" alt="Niños">
+            </div>
+            <button class="btn btn-start" id="startBtn">Comenzar</button>
+        </div>
+    </section>
+
+    <section class="screen" id="gameScreen">
+        <header><h1>¿Diptongo o hiato?</h1></header>
+        <div class="game-info">
+            <div class="level-indicator" id="levelIndicator">Palabra 1/12</div>
+            <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+            <div class="timer" id="timer">00:00.00</div>
+        </div>
+        <div class="play-layout">
+            <div class="play-main">
+                <div class="word-card" id="wordCard">
+                    <div class="word" id="word"></div>
+                    <div class="legend" id="legend"><span class="lo">● abierta</span><span class="lc">● cerrada</span></div>
+                </div>
+                <div class="question big-q" id="question"></div>
+                <div class="answers" id="answers"></div>
+                <div class="feedback" id="feedback"></div>
+                <div class="summary" id="summary">
+                    <div class="verdict" id="verdict"></div>
+                    <div class="syl-row" id="sylRow"></div>
+                    <button class="btn btn-next" id="nextBtn">Siguiente ➜</button>
+                </div>
+            </div>
+            <div class="play-side">
+                <div class="diagram-box">
+                    <div class="diagram-title">Tu camino</div>
+                    <div id="gameDiagram"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="screen" id="finalScreen">
+        <header><h1 class="final-title">Diptongos e hiatos</h1></header>
+        <div class="results">
+            <div id="trophyBox">🏆</div>
+            <div class="score-title">Puntuación:</div>
+            <div class="big-score" id="finalScore">0</div>
+            <div class="final-time">Tiempo: <span id="finalTime">00:00.00</span></div>
+            <div id="finalMsg" class="subtitle"></div>
+            <div class="review-box" id="reviewBox">
+                <h3>Palabras que te han costado</h3>
+                <ul class="review-list" id="reviewList"></ul>
+            </div>
+            <button class="btn btn-start" id="backToMenuBtn">Volver al menú</button>
+            <div class="credit">Creado por Manuel J. Ventura</div>
+            <img class="school-logo" src="https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/refs/heads/main/Siurot.png" alt="School logo" />
+        </div>
+    </section>
+</div>
+
+<div class="modal-overlay" id="exitModal">
+    <div class="modal-card">
+        <h2>¿Volver al menú?</h2>
+        <p>Si sales ahora, perderás la partida.</p>
+        <div class="modal-actions">
+            <button class="btn btn-blue" id="exitStayBtn">Seguir jugando</button>
+            <button class="btn btn-grey" id="exitLeaveBtn">Salir</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const TOTAL_WORDS = 12, PER_CAT = 3, RETARDO_PASO = 1000;
+const WORDS = [
+ // Ficha
+ 'a-vio-ne-ta','cuer-da','hie-lo','pei-ne','Ra-úl','se-ís-mo','me-te-o-ri-to','An-da-lu-cí-a','sa-e-ta','tri-ne-o','pa-ís','bui-tre','a-ta-úd','le-jí-a','san-dí-a','triun-fo','mí-o','po-e-ta','Pa-tri-cia','mons-truo',
+ // Dos cerradas
+ 'cui-da-do','ciu-dad','rui-do','viu-da','des-truir','diur-no','fui-mos','je-sui-ta',
+ // Dos abiertas
+ 'te-a-tro','á-re-a','po-e-ma','le-ón','mu-se-o','hé-ro-e','o-cé-a-no','ca-no-a','ta-re-a','co-rre-a',
+ // Abierta + cerrada sin tilde en la cerrada
+ 'bue-no','cua-dro','a-cei-te','Ma-rio','pia-no','nie-ve','puer-ta','cie-lo','ca-mión','cua-tro','jau-la','rei-na',
+ // Hiato con tilde en la cerrada
+ 'Ma-rí-a','ba-úl','frí-o','rí-o','dí-a','ma-íz','o-í-do','tran-ví-a','po-li-cí-a','grú-a','Lu-cí-a','va-cí-o'
+];
+const FICHA = new Set(WORDS.slice(0,20));
+
+/* AUDIO */
+let soundEnabled = true, audioUnlocked = false, audioContext;
+const audioUrls = {
+  correct:'https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/refs/heads/main/Correcto.mp3',
+  error:'https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/refs/heads/main/Error.mp3',
+  tap:'https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/refs/heads/main/Tap.mp3',
+  victory:'https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/refs/heads/main/Termin%C3%A9.mp3',
+  completed:'https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/refs/heads/main/Completado.mp3'
+};
+const audioObjects = {};
+Object.keys(audioUrls).forEach(k => { const a = new Audio(); a.src = audioUrls[k]; a.preload = 'auto'; audioObjects[k] = a; });
+function unlockAudioContext() {
+  try {
+    if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioContext.state === 'suspended') audioContext.resume();
+    const b = audioContext.createBuffer(1,1,22050), src = audioContext.createBufferSource();
+    src.buffer = b; src.connect(audioContext.destination); src.start(0);
+  } catch(e) {}
+  audioUnlocked = true;
+}
+function playSound(t) {
+  if (!soundEnabled) return;
+  if (!audioUnlocked) unlockAudioContext();
+  const a = audioObjects[t]; if (!a) return;
+  try { a.currentTime = 0; const p = a.play(); if (p && p.catch) p.catch(()=>{}); } catch(e) {}
+}
+function warmAudio() {
+  Object.keys(audioObjects).forEach(k => {
+    if (k === 'tap') return;
+    const a = audioObjects[k], v = a.volume; a.volume = 0;
+    try { const p = a.play(); if (p && p.then) p.then(()=>{ a.pause(); a.currentTime = 0; a.volume = v; }).catch(()=>{ a.volume = v; }); else a.volume = v; } catch(e) { a.volume = v; }
+  });
+}
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  document.getElementById('soundIconOn').style.display = soundEnabled ? 'block' : 'none';
+  document.getElementById('soundIconOff').style.display = soundEnabled ? 'none' : 'block';
+  playSound('tap');
+}
+
+/* ANÁLISIS */
+const isV = c => 'aeiouáéíóú'.includes(c.toLowerCase());
+const isClosed = c => 'iuíú'.includes(c.toLowerCase());
+const hasTilde = c => 'áéíóú'.includes(c.toLowerCase());
+const STRIP = {'á':'a','é':'e','í':'i','ó':'o','ú':'u'};
+const base = c => STRIP[c.toLowerCase()] || c.toLowerCase();
+function analyze(str) {
+  const syls = str.split('-'), full = [...syls.join('')];
+  let p = -1;
+  for (let i = 0; i < full.length-1; i++) if (isV(full[i]) && isV(full[i+1])) { p = i; break; }
+  const a = full[p], b = full[p+1], ca = isClosed(a), cb = isClosed(b);
+  let cat;
+  if (ca && cb) cat = 'cerradas'; else if (!ca && !cb) cat = 'abiertas';
+  else cat = hasTilde(ca ? a : b) ? 'tilde' : 'mixta';
+  return { key:str, ficha:FICHA.has(str), syls, full, p, cat, hiato:(cat==='abiertas'||cat==='tilde'), va:base(a), vb:base(b),
+           closedIdx:(cat==='mixta'||cat==='tilde') ? (ca ? p : p+1) : -1 };
+}
+const ALL = WORDS.map(analyze);
+
+/* DIAGRAMA */
+function buildDiagram(pfx) {
+  const node = (id, cls, x, y, w, h, l1, l2, big) => {
+    const cy = y + h/2; let t;
+    if (big) t = `<text class="tr" x="${x+w/2}" y="${cy-8}">${l1}</text><text class="t2" x="${x+w/2}" y="${cy+11}">${l2}</text>`;
+    else if (l2) t = `<text class="t1" x="${x+w/2}" y="${cy-8}">${l1}</text><text class="t2" x="${x+w/2}" y="${cy+9}">${l2}</text>`;
+    else t = `<text class="t1" x="${x+w/2}" y="${cy}">${l1}</text>`;
+    return `<g class="nd ${cls}" id="${pfx}-${id}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="9"/>${t}</g>`;
+  };
+  const edge = (id, d) => `<path id="${pfx}-e-${id}" d="${d}"/>`;
+  return `<svg class="diagram" viewBox="0 0 420 300" xmlns="http://www.w3.org/2000/svg" style="--mk-gray:url(#${pfx}-mg);--mk-orange:url(#${pfx}-mo)" role="img" aria-label="Diagrama diptongo o hiato">
+  <defs>
+   <marker id="${pfx}-mg" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8a8fa3"/></marker>
+   <marker id="${pfx}-mo" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#f59e42"/></marker>
+  </defs>
+  <g class="eg">
+   ${edge('start-como','M210 34 V52')}${edge('como-cerr','M210 84 V96 H55 V112')}${edge('como-abie','M210 84 V96 H160 V112')}${edge('como-mixta','M210 84 V96 H315 V112')}
+   ${edge('cerr-rd1','M55 154 V238')}${edge('abie-rh1','M160 154 V238')}${edge('mixta-acento','M315 154 V174')}${edge('acento-rd2','M290 206 V220 H262 V238')}${edge('acento-rh2','M340 206 V220 H367 V238')}
+  </g>
+  <text class="lbl" x="238" y="232">No</text><text class="lbl" x="378" y="232">Sí</text>
+  ${node('start','',110,4,200,30,'Busca dos vocales juntas')}
+  ${node('como','q',100,54,220,30,'¿Cómo son las dos vocales?')}
+  ${node('cerr','',5,114,100,40,'Dos cerradas','i, u')}
+  ${node('abie','',110,114,100,40,'Dos abiertas','a, e, o')}
+  ${node('mixta','',255,114,120,40,'Una de cada tipo','abierta y cerrada')}
+  ${node('acento','q',240,176,150,30,'¿Tilde en la cerrada?')}
+  ${node('rd1','rd',5,240,100,52,'Diptongo','se unen',true)}
+  ${node('rh1','rh',110,240,100,52,'Hiato','se separan',true)}
+  ${node('rd2','rd',215,240,95,52,'Diptongo','se unen',true)}
+  ${node('rh2','rh',320,240,95,52,'Hiato','se separan',true)}
+ </svg>`;
+}
+document.getElementById('gameDiagram').innerHTML = buildDiagram('g');
+const PATHS = {
+  cerradas:{type:'cerr',edge:'como-cerr',toRes:'cerr-rd1',res:'rd1'},
+  abiertas:{type:'abie',edge:'como-abie',toRes:'abie-rh1',res:'rh1'},
+  mixta:{type:'mixta',edge:'como-mixta',toRes:'acento-rd2',res:'rd2'},
+  tilde:{type:'mixta',edge:'como-mixta',toRes:'acento-rh2',res:'rh2'}
+};
+const dEl = id => document.getElementById('g-' + id);
+function dReset() { document.querySelectorAll('#gameDiagram .nd').forEach(n=>n.classList.remove('on','cur','win')); document.querySelectorAll('#gameDiagram .eg path').forEach(e=>e.classList.remove('on')); }
+function dOn(id) { const n = dEl(id); if (n) { n.classList.remove('cur'); n.classList.add('on'); } }
+function dCur(id) { document.querySelectorAll('#gameDiagram .nd.cur').forEach(n=>n.classList.remove('cur')); const n = dEl(id); if (n) n.classList.add('cur'); }
+function dEdge(id) { const e = dEl('e-'+id); if (e) { e.classList.add('on'); e.parentNode.appendChild(e); } }
+function dWin(id) { const n = dEl(id); if (n) { n.classList.remove('cur','on'); n.classList.add('win'); } }
+function dAfterPair() { dOn('start'); dEdge('start-como'); dCur('como'); }
+function dAfterTipo(w) { const P = PATHS[w.cat]; dOn('como'); dEdge(P.edge); dOn(P.type);
+  if (w.cat==='mixta'||w.cat==='tilde') { dEdge('mixta-acento'); dCur('acento'); } else { dEdge(P.toRes); dCur(P.res); } }
+function dAfterTilde(w) { const P = PATHS[w.cat]; dOn('acento'); dEdge(P.toRes); dCur(P.res); }
+
+/* ESTADO */
+const $ = id => document.getElementById(id);
+const wordEl = $('word'), questionEl = $('question'), answersEl = $('answers'), feedbackEl = $('feedback');
+let words = [], idx = 0, cur = null, phases = [], phaseI = 0;
+let errors = 0, nTotal = 0, stepsDone = 0, failed = [], wordHadError = false;
+let selection = [], locked = false, finishing = false, gameActive = false;
+let startTime = 0, timerInterval = null, elapsed = 0, finalTimeVal = 0, finalScoreVal = 0;
+
+function shuffle(a) { for (let i=a.length-1;i>0;i--) { const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $(id).classList.add('active');
+  $('homeBtn').classList.toggle('show', id === 'gameScreen');
+  window.scrollTo(0,0);
+}
+function formatTime(sec) {
+  const m = Math.floor(sec/60).toString().padStart(2,'0'), s = Math.floor(sec%60).toString().padStart(2,'0'), cs = Math.floor((sec%1)*100).toString().padStart(2,'0');
+  return `${m}:${s}.${cs}`;
+}
+function startTimer() { stopTimer(); startTime = Date.now(); elapsed = 0;
+  timerInterval = setInterval(()=>{ elapsed = (Date.now()-startTime)/1000; $('timer').textContent = formatTime(elapsed); }, 30); }
+function stopTimer() { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } }
+
+function pickWords() {
+  const out = [];
+  ['cerradas','abiertas','mixta','tilde'].forEach(cat => {
+    const f = shuffle(ALL.filter(w=>w.cat===cat && w.ficha)), e = shuffle(ALL.filter(w=>w.cat===cat && !w.ficha));
+    const nF = Math.min(f.length, 2);
+    out.push(...f.slice(0,nF), ...e.slice(0, PER_CAT-nF));
+  });
+  return shuffle(out);
+}
+const phasesFor = w => (w.cat==='mixta'||w.cat==='tilde') ? ['pair','tipo','tilde','conclusion'] : ['pair','tipo','conclusion'];
+
+function startGame() {
+  unlockAudioContext(); playSound('tap'); warmAudio();
+  words = pickWords();
+  nTotal = words.reduce((s,w)=>s+phasesFor(w).length, 0);
+  errors = 0; stepsDone = 0; idx = 0; finishing = false; failed = [];
+  $('progressFill').style.width = '0%'; $('timer').textContent = '00:00.00';
+  showScreen('gameScreen'); gameActive = true;
+  try { history.pushState({s:'game'}, ''); } catch(e) {}
+  startTimer(); loadWord();
+}
+function loadWord() {
+  if (idx >= words.length) { finishGame(); return; }
+  cur = words[idx]; phases = phasesFor(cur); phaseI = 0;
+  wordHadError = false; selection = []; locked = false;
+  $('levelIndicator').textContent = 'Palabra ' + (idx+1) + '/' + words.length;
+  $('summary').classList.remove('show'); $('wordCard').classList.remove('hidden');
+  hideFeedback(); dReset(); dCur('start');
+  renderWord(); renderPhase();
+}
+function renderWord() {
+  const phase = phases[phaseI];
+  const showPair = phase !== 'pair';
+  const showTypes = phaseI > phases.indexOf('tipo');
+  wordEl.innerHTML = ''; wordEl.className = 'word' + (phase==='pair' ? ' pickable' : '');
+  cur.full.forEach((ch,i) => {
+    const t = document.createElement('span'); t.className = 'tile'; t.textContent = ch; t.dataset.i = i;
+    const inPair = (i===cur.p || i===cur.p+1);
+    if (inPair && showPair) t.classList.add('pair');
+    if (inPair && showTypes) t.classList.add(isClosed(ch) ? 'vc' : 'vo');
+    if (selection.includes(i)) t.classList.add('sel');
+    t.onclick = () => tapTile(i, t);
+    wordEl.appendChild(t);
+  });
+  $('legend').classList.toggle('show', showTypes);
+}
+const qv = v => `<span class="qv">«${v}»</span>`;
+function ansBtn(html, cls, fn) {
+  const b = document.createElement('button'); b.className = 'btn ans-btn ' + (cls||''); b.innerHTML = html;
+  b.onclick = () => { if (!locked && !b.disabled) fn(b); }; answersEl.appendChild(b);
+}
+function renderPhase() {
+  const ph = phases[phaseI]; answersEl.innerHTML = '';
+  if (ph === 'pair') questionEl.innerHTML = 'Pulsa las <b>dos vocales</b> que están juntas.';
+  else if (ph === 'tipo') {
+    questionEl.innerHTML = `¿Cómo son las vocales ${qv(cur.va)} y ${qv(cur.vb)}?`;
+    ansBtn('Dos cerradas<small>i, u</small>','blue', b=>answer(b, cur.cat==='cerradas','tipo'));
+    ansBtn('Dos abiertas<small>a, e, o</small>','blue', b=>answer(b, cur.cat==='abiertas','tipo'));
+    ansBtn('Una de cada tipo<small>abierta y cerrada</small>','blue', b=>answer(b, cur.cat==='mixta'||cur.cat==='tilde','tipo'));
+  } else if (ph === 'tilde') {
+    questionEl.innerHTML = `¿Lleva tilde la vocal cerrada ${qv(base(cur.full[cur.closedIdx]))}?`;
+    ansBtn('No','', b=>answer(b, cur.cat==='mixta','tilde'));
+    ansBtn('Sí','', b=>answer(b, cur.cat==='tilde','tilde'));
+  } else if (ph === 'conclusion') {
+    questionEl.innerHTML = '¿Qué forman estas dos vocales?';
+    ansBtn('Diptongo<small>se unen</small>','dip', b=>answer(b, !cur.hiato,'conclusion'));
+    ansBtn('Hiato<small>se separan</small>','hia', b=>answer(b, cur.hiato,'conclusion'));
+  } else if (ph === 'done') { questionEl.innerHTML = ''; showSummary(); }
+}
+function hideFeedback() { feedbackEl.className = 'feedback'; feedbackEl.innerHTML = ''; }
+function showFeedback(ok, html) { feedbackEl.className = 'feedback show ' + (ok?'ok':'err'); feedbackEl.innerHTML = html; }
+function shake(el) { el.classList.remove('shake-anim'); void el.offsetWidth; el.classList.add('shake-anim'); setTimeout(()=>el.classList.remove('shake-anim'),450); }
+function registerError(el, html) {
+  errors++;
+  if (!wordHadError) { wordHadError = true; failed.push(cur); }
+  playSound('error'); shake(el || $('wordCard')); showFeedback(false, '❌ ' + html);
+}
+function advance(okHtml) {
+  playSound('correct'); stepsDone++;
+  $('progressFill').style.width = (stepsDone/nTotal*100) + '%';
+  showFeedback(true, '✅ ' + okHtml); locked = true;
+  setTimeout(() => { phaseI++; locked = false; if (phases[phaseI] === undefined) phases.push('done'); hideFeedback(); renderWord(); renderPhase(); }, RETARDO_PASO);
+}
+const typeName = v => 'iu'.includes(v) ? 'cerrada' : 'abierta';
+
+function tapTile(i, t) {
+  if (locked || phases[phaseI] !== 'pair') return;
+  if (selection.includes(i)) { selection = selection.filter(x=>x!==i); t.classList.remove('sel'); playSound('tap'); return; }
+  selection.push(i); t.classList.add('sel'); playSound('tap');
+  if (selection.length < 2) return;
+  const ok = selection.includes(cur.p) && selection.includes(cur.p+1);
+  if (ok) { selection = []; dAfterPair(); advance(`¡Bien! Son ${qv(cur.va)} y ${qv(cur.vb)}.`); }
+  else {
+    const bad = selection.slice(); selection = [];
+    bad.forEach(k => { const el = wordEl.querySelector(`.tile[data-i="${k}"]`); if (el) { el.classList.remove('sel'); el.classList.add('bad'); } });
+    locked = true; setTimeout(()=>{ wordEl.querySelectorAll('.tile.bad').forEach(el=>el.classList.remove('bad')); locked = false; }, 700);
+    registerError(wordEl, 'Busca <b>dos vocales (a, e, i, o, u) seguidas</b>, sin ninguna consonante en medio.');
+  }
+}
+function answer(btn, ok, phase) {
+  if (ok) {
+    answersEl.querySelectorAll('button').forEach(b=>b.disabled = true);
+    if (phase === 'tipo') {
+      dAfterTipo(cur);
+      const m = cur.cat==='cerradas' ? 'Las dos son cerradas.' : cur.cat==='abiertas' ? 'Las dos son abiertas.'
+        : `${qv(base(cur.full[cur.closedIdx]))} es cerrada y ${qv(base(cur.full[cur.closedIdx===cur.p?cur.p+1:cur.p]))} es abierta.`;
+      advance('¡Correcto! ' + m);
+    } else if (phase === 'tilde') {
+      dAfterTilde(cur);
+      advance(cur.cat==='tilde' ? `¡Correcto! Mira: la ${qv(cur.full[cur.closedIdx])} lleva tilde.` : '¡Correcto! La vocal cerrada no lleva tilde.');
+    } else {
+      dWin(PATHS[cur.cat].res);
+      advance(cur.hiato ? `¡Correcto! Es <b>hiato</b>: se separan.` : `¡Correcto! Es <b>diptongo</b>: se unen.`);
+    }
+  } else {
+    btn.disabled = true; let m = '';
+    if (phase === 'tipo') m = `${qv(cur.va)} es ${typeName(cur.va)} y ${qv(cur.vb)} es ${typeName(cur.vb)}.<br>Abiertas: <b>a, e, o</b> · Cerradas: <b>i, u</b>.`;
+    else if (phase === 'tilde') m = cur.cat==='tilde' ? `Fíjate: la ${qv(cur.full[cur.closedIdx])} <b>sí</b> lleva tilde.` : `Fíjate: la vocal cerrada <b>no</b> lleva tilde.`;
+    else if (cur.cat==='cerradas') m = 'Dos cerradas juntas siempre se <b>unen</b> → diptongo.';
+    else if (cur.cat==='abiertas') m = 'Dos abiertas juntas siempre se <b>separan</b> → hiato.';
+    else if (cur.cat==='mixta') m = 'Una abierta y una cerrada <b>sin tilde</b> en la cerrada se <b>unen</b> → diptongo.';
+    else m = 'Con <b>tilde en la cerrada</b>, las vocales se <b>separan</b> → hiato.';
+    registerError($('wordCard'), m);
+  }
+}
+function showSummary() {
+  hideFeedback(); answersEl.innerHTML = ''; wordEl.innerHTML = ''; $('wordCard').classList.add('hidden'); $('legend').classList.remove('show');
+  const v = $('verdict'); v.textContent = cur.hiato ? 'Hiato' : 'Diptongo'; v.className = 'verdict ' + (cur.hiato ? 'hia' : 'dip');
+  const row = $('sylRow'); row.innerHTML = ''; let pos = 0;
+  cur.syls.forEach(s => {
+    const chars = [...s], d = document.createElement('span'); d.className = 'syl'; let has = false;
+    d.innerHTML = chars.map((c,k)=>{ const g = pos+k; if (g===cur.p || g===cur.p+1) { has = true; return `<b class="pv">${c}</b>`; } return c; }).join('');
+    if (has) d.classList.add(cur.hiato ? 'split' : 'join');
+    pos += chars.length; row.appendChild(d);
+  });
+  $('summary').classList.add('show');
+}
+$('nextBtn').onclick = () => { if (locked || finishing || phases[phaseI] !== 'done') return; playSound('tap'); idx++; loadWord(); };
+
+function finishGame() {
+  if (finishing) return; finishing = true; gameActive = false; stopTimer();
+  $('summary').classList.remove('show');
+  finalTimeVal = elapsed;
+  finalScoreVal = Math.max(0, Math.min(100, Math.round(100 - errors*100/nTotal)));
+  $('finalScore').textContent = finalScoreVal; $('finalTime').textContent = formatTime(finalTimeVal);
+  const list = $('reviewList'); list.innerHTML = '';
+  if (failed.length) {
+    failed.forEach(w => { const li = document.createElement('li');
+      li.innerHTML = `<span>${w.syls.join('-')}</span><span class="chip ${w.hiato?'hia':'dip'}">${w.hiato?'Hiato':'Diptongo'}</span>`; list.appendChild(li); });
+    $('reviewBox').style.display = '';
+  } else $('reviewBox').style.display = 'none';
+  const trophy = $('trophyBox'), msg = $('finalMsg');
+  if (finalScoreVal === 100) { trophy.style.display = 'block'; msg.textContent = '¡Enhorabuena, puntuación máxima!'; }
+  else { trophy.style.display = 'none'; msg.textContent = '¡Buen trabajo! Sigue practicando'; playSound('completed'); }
+  setTimeout(() => { if (finalScoreVal === 100) { playSound('victory'); createConfetti(); } showScreen('finalScreen'); }, 600);
+}
+function createConfetti() {
+  for (let i=0;i<100;i++) setTimeout(()=>{
+    const c = document.createElement('div'); c.className = 'confetti';
+    c.style.left = (Math.random()*window.innerWidth)+'px'; c.style.top = '-10px';
+    c.style.backgroundColor = ['#ff595e','#1982c4','#6a4c93','#ffca3a','#8ac926'][Math.floor(Math.random()*5)];
+    c.style.setProperty('--tx', ((Math.random()-0.5)*200)+'px'); c.style.setProperty('--ty', (window.innerHeight+20)+'px');
+    document.body.appendChild(c); setTimeout(()=>c.remove(),3000);
+  }, i*20);
+}
+
+/* NAVEGACIÓN */
+let ignorePop = false;
+function closeExit() { $('exitModal').classList.remove('show'); }
+function goMenu() { gameActive = false; stopTimer(); closeExit(); showScreen('startScreen'); }
+function backOne() { try { ignorePop = true; history.back(); } catch(e) { ignorePop = false; } }
+window.addEventListener('popstate', () => {
+  if (ignorePop) { ignorePop = false; return; }
+  if ($('exitModal').classList.contains('show')) { goMenu(); return; }
+  if ($('gameScreen').classList.contains('active') && gameActive) { try { history.pushState({s:'game'}, ''); } catch(e) {} $('exitModal').classList.add('show'); return; }
+  if ($('finalScreen').classList.contains('active') || $('gameScreen').classList.contains('active')) goMenu();
+});
+$('homeBtn').onclick = () => { playSound('tap'); $('exitModal').classList.add('show'); };
+$('exitStayBtn').onclick = () => { playSound('tap'); closeExit(); };
+$('exitLeaveBtn').onclick = () => { playSound('tap'); goMenu(); backOne(); };
+$('backToMenuBtn').onclick = () => { playSound('tap'); goMenu(); backOne(); };
+$('muteBtn').onclick = toggleSound;
+$('startBtn').onclick = startGame;
+window.addEventListener('load', () => { const im = new Image(); im.src = 'https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/refs/heads/main/Siurot.png'; });
+
+</script>
+</body>
+</html>
