@@ -377,6 +377,7 @@ const isClosed = c => 'iuíú'.includes(c.toLowerCase());
 const hasTilde = c => 'áéíóú'.includes(c.toLowerCase());
 const STRIP = {'á':'a','é':'e','í':'i','ó':'o','ú':'u'};
 const base = c => STRIP[c.toLowerCase()] || c.toLowerCase();
+const plain = c => { const b = STRIP[c.toLowerCase()]; return b ? (c === c.toUpperCase() ? b.toUpperCase() : b) : c; };
 function analyze(str) {
   const syls = str.split('-'), full = [...syls.join('')];
   let p = -1;
@@ -415,7 +416,7 @@ function buildDiagram(pfx) {
   ${node('cerr','',5,114,100,40,'Dos cerradas','i, u')}
   ${node('abie','',110,114,100,40,'Dos abiertas','a, e, o')}
   ${node('mixta','',255,114,120,40,'Una de cada tipo','abierta y cerrada')}
-  ${node('acento','q',240,176,150,30,'¿Tilde en la cerrada?')}
+  ${node('acento','q',240,176,150,30,'¿Acento en la cerrada?')}
   ${node('rd1','rd',5,240,100,52,'Diptongo','se unen',true)}
   ${node('rh1','rh',110,240,100,52,'Hiato','se separan',true)}
   ${node('rd2','rd',215,240,95,52,'Diptongo','se unen',true)}
@@ -499,7 +500,7 @@ function renderWord() {
   const showTypes = phaseI > phases.indexOf('tipo');
   wordEl.innerHTML = ''; wordEl.className = 'word' + (phase==='pair' ? ' pickable' : '');
   cur.full.forEach((ch,i) => {
-    const t = document.createElement('span'); t.className = 'tile'; t.textContent = ch; t.dataset.i = i;
+    const t = document.createElement('span'); t.className = 'tile'; t.textContent = plain(ch); t.dataset.i = i;
     const inPair = (i===cur.p || i===cur.p+1);
     if (inPair && showPair) t.classList.add('pair');
     if (inPair && showTypes) t.classList.add(isClosed(ch) ? 'vc' : 'vo');
@@ -523,7 +524,7 @@ function renderPhase() {
     ansBtn('Dos abiertas<small>a, e, o</small>','blue', b=>answer(b, cur.cat==='abiertas','tipo'));
     ansBtn('Una de cada tipo<small>abierta y cerrada</small>','blue', b=>answer(b, cur.cat==='mixta'||cur.cat==='tilde','tipo'));
   } else if (ph === 'tilde') {
-    questionEl.innerHTML = `¿Lleva tilde la vocal cerrada ${qv(base(cur.full[cur.closedIdx]))}?`;
+    questionEl.innerHTML = `¿Cae el acento en la vocal cerrada ${qv('i, u')}?`;
     ansBtn('No','', b=>answer(b, cur.cat==='mixta','tilde'));
     ansBtn('Sí','', b=>answer(b, cur.cat==='tilde','tilde'));
   } else if (ph === 'conclusion') {
@@ -546,6 +547,7 @@ function advance(okHtml) {
   showFeedback(true, '✅ ' + okHtml); locked = true;
   setTimeout(() => { phaseI++; locked = false; if (phases[phaseI] === undefined) phases.push('done'); hideFeedback(); renderWord(); renderPhase(); }, RETARDO_PASO);
 }
+function markStress() { const el = wordEl.querySelector(`.tile[data-i="${cur.closedIdx}"]`); if (cur.cat==='tilde' && el) el.classList.add('stress','pop'); }
 const typeName = v => 'iu'.includes(v) ? 'cerrada' : 'abierta';
 
 function tapTile(i, t) {
@@ -572,7 +574,7 @@ function answer(btn, ok, phase) {
       advance('¡Correcto! ' + m);
     } else if (phase === 'tilde') {
       dAfterTilde(cur);
-      advance(cur.cat==='tilde' ? `¡Correcto! Mira: la ${qv(cur.full[cur.closedIdx])} lleva tilde.` : '¡Correcto! La vocal cerrada no lleva tilde.');
+      advance(cur.cat==='tilde' ? `¡Correcto! El acento cae en la ${qv(base(cur.full[cur.closedIdx]))}.` : '¡Correcto! El acento no cae en la vocal cerrada.');
     } else {
       dWin(PATHS[cur.cat].res);
       advance(cur.hiato ? `¡Correcto! Es <b>hiato</b>: se separan.` : `¡Correcto! Es <b>diptongo</b>: se unen.`);
@@ -580,11 +582,11 @@ function answer(btn, ok, phase) {
   } else {
     btn.disabled = true; let m = '';
     if (phase === 'tipo') m = `${qv(cur.va)} es ${typeName(cur.va)} y ${qv(cur.vb)} es ${typeName(cur.vb)}.<br>Abiertas: <b>a, e, o</b> · Cerradas: <b>i, u</b>.`;
-    else if (phase === 'tilde') m = cur.cat==='tilde' ? `Fíjate: la ${qv(cur.full[cur.closedIdx])} <b>sí</b> lleva tilde.` : `Fíjate: la vocal cerrada <b>no</b> lleva tilde.`;
+    else if (phase === 'tilde') { markStress(); m = cur.cat==='tilde' ? `Dila despacio: el acento <b>sí</b> cae en la ${qv(base(cur.full[cur.closedIdx]))}.` : `Dila despacio: el acento <b>no</b> cae en la vocal cerrada.`; }
     else if (cur.cat==='cerradas') m = 'Dos cerradas juntas siempre se <b>unen</b> → diptongo.';
     else if (cur.cat==='abiertas') m = 'Dos abiertas juntas siempre se <b>separan</b> → hiato.';
-    else if (cur.cat==='mixta') m = 'Una abierta y una cerrada <b>sin tilde</b> en la cerrada se <b>unen</b> → diptongo.';
-    else m = 'Con <b>tilde en la cerrada</b>, las vocales se <b>separan</b> → hiato.';
+    else if (cur.cat==='mixta') m = 'Una abierta y una cerrada, con el acento <b>fuera</b> de la cerrada, se <b>unen</b> → diptongo.';
+    else m = 'Con el <b>acento en la cerrada</b>, las vocales se <b>separan</b> → hiato.';
     registerError($('wordCard'), m);
   }
 }
@@ -598,6 +600,10 @@ function showSummary() {
     if (has) d.classList.add(cur.hiato ? 'split' : 'join');
     pos += chars.length; row.appendChild(d);
   });
+  const why = $('why'); if (why) why.remove();
+  const w = document.createElement('div'); w.id = 'why'; w.className = 'why';
+  w.innerHTML = cur.cat==='tilde' ? 'El acento cae en la cerrada → lleva <b>tilde</b> y se separa.' : cur.cat==='mixta' ? 'El acento no cae en la cerrada → se unen.' : cur.hiato ? 'Dos abiertas → se separan.' : 'Dos cerradas → se unen.';
+  $('sylRow').after(w);
   $('summary').classList.add('show');
 }
 $('nextBtn').onclick = () => { if (locked || finishing || phases[phaseI] !== 'done') return; playSound('tap'); idx++; loadWord(); };
